@@ -200,7 +200,6 @@ def compPickMove():
         move = random.choice(list(lines.keys()))
         good = False
         while not good:
-            print("stuck here")
             move = random.choice(list(lines.keys()))
             for c in move:
                 if c.islower() and c in smallest and lines[move]==0:
@@ -224,23 +223,29 @@ def printScore():
         print("It's a Tie!")
 
 
-#bs = int(input("what square board size would you like to play? "))
-#boxes = {}
-#for box in range(1,bs*bs+1):
-#    boxes[str(box)] = "empty"
-#print(boxes)
-#lines = {}
-#for s in range(1,bs+1):
-#    lines[str(s)+'n'] = 0
-   # for s2 in range(bs):
-    #    lines[str(s+
-#    lines[str(bs*bs-s+1)+'s'] = 0
-#print(lines)
-boxes = {'a':"empty",'b':"empty",'c':"empty",'d':"empty",'e':"empty",'f':"empty",'g':"empty",'h':"empty",'i':"empty"}
-lines = {'aN':1,'bN':1,'cN':0,'ad':0,'be':1,'cf':1,'dg':1,'eh':0,'fi':0,'gS':0,'hS':1,'iS':1,'aW':1,'dW':0,'gW':1,'ab':0,'de':1,'gh':0,'bc':0,'ef':0,'hi':1,'cE':1,'fE':0,'iE':0}
+bs = int(input("what square board size would you like to play? "))
+boxes = {}
+a = ord('a')
+for box in range(bs*bs):
+    boxes[chr(a+box)] = "empty"
+print(boxes)
+lines = {}
+for s in range(bs):
+    lines[chr(a+s)+'N'] = 0
+    for row in range(bs-1):
+        lines[chr(a+s+bs*row)+chr(a+s+bs*(row+1))] = 0
+    lines[chr(a+s+bs*(bs-1))+'S'] = 0
+    lines[chr(a+bs*s)+'W'] = 0
+    for col in range(bs-1):
+        lines[chr(a+bs*s+col)+chr(a+bs*s+(col+1))] = 0
+    lines[chr(a+bs*s+(bs-1))+'E'] = 0
+print(lines)
+#boxes = {'a':"empty",'b':"empty",'c':"empty",'d':"empty",'e':"empty",'f':"empty",'g':"empty",'h':"empty",'i':"empty"}
+#lines = {'aN':1,'bN':1,'cN':0,'ad':0,'be':1,'cf':1,'dg':1,'eh':0,'fi':0,'gS':0,'hS':1,'iS':1,'aW':1,'dW':0,'gW':1,'ab':0,'de':1,'gh':0,'bc':0,'ef':0,'hi':1,'cE':1,'fE':0,'iE':0}
 moves = 0
+max_moves = 2*bs*(bs+1)
 game_over = False
-while moves < 24 and not game_over:
+while moves < max_moves and not game_over:
     # you move
     ycont = True
     while ycont and not game_over:
