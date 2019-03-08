@@ -3,7 +3,7 @@ import random
 def capturedBox(move,p,update):
     foundbox = False
     for c in move:
-        if c.isdigit():
+        if c.islower():
             boxed = True
             for l in lines:
                 if c in l and l != move:
@@ -41,7 +41,7 @@ def numDeadBoxes():
 
 def isSafeMove(move):
     for c in move:
-        if c.isdigit():
+        if c.islower():
             lines_around = 0
             for l in lines.keys():
                 if c in l and l != move:
@@ -59,12 +59,12 @@ def safeMovesLeft():
 
 def boxesBeside(box):
     boxes_beside = []
-    if box.isdigit() == False:
+    if box.islower() == False:
         return boxes_beside
     for line in lines.keys():
         if box in line and lines[line]==0:
             for c in line:
-                if c!=box:# and c.isdigit():
+                if c!=box:
                     boxes_beside.append(c)
     return boxes_beside
         
@@ -88,7 +88,7 @@ def returnChains():
                 box_1 = boxes_beside_l[0]
                 box_2 = boxes_beside_l[1]
                 if box_1!=last_box:
-                    if box_1 in chain and box_1.isdigit():
+                    if box_1 in chain and box_1.islower():
                         chain.insert(0,box_1)
                         break
                     chain.insert(0,box_1)
@@ -96,7 +96,7 @@ def returnChains():
                     last_box = next_last_box
                     next_last_box = box_1
                 else:
-                    if box_2 in chain and box_2.isdigit():
+                    if box_2 in chain and box_2.islower():
                         chain.insert(0,box_2)
                         break
                     chain.insert(0,box_2)
@@ -111,7 +111,7 @@ def returnChains():
                 box_1 = boxes_beside_r[0]
                 box_2 = boxes_beside_r[1]
                 if box_1!=last_box:
-                    if box_1 in chain and box_1.isdigit():
+                    if box_1 in chain and box_1.islower():
                         chain.append(box_1)
                         break
                     chain.append(box_1)
@@ -119,7 +119,7 @@ def returnChains():
                     last_box = next_last_box
                     next_last_box = box_1
                 else:
-                    if box_2 in chain and box_2.isdigit():
+                    if box_2 in chain and box_2.islower():
                         chain.append(box_2)
                         break
                     chain.append(box_2)
@@ -172,13 +172,13 @@ def compPickMove():
                         only_long_left = False
                         break
                 if len(chain)==3 and numEmptyBoxes()>2 and only_long_left:
-                    if chain[0].isdigit() == False:
-                        if chain[0]<chain[1]:
+                    if chain[0].islower() == False:
+                        if chain[0]<chain[1] and chain[0].islower():
                             move = chain[0]+chain[1]
                         else:
                             move = chain[1]+chain[0]
-                    elif chain[-1].isdigit() == False:
-                        if chain[-2]<chain[-1]:
+                    elif chain[-1].islower() == False:
+                        if chain[-2]<chain[-1] and chain[-2].islower():
                             move = chain[-2]+chain[-1]
                         else:
                             move = chain[-1]+chain[-2]
@@ -192,7 +192,7 @@ def compPickMove():
     else:
         smallest = min(chains, key=len)
         if len(smallest) == 4:
-            if smallest[1]<smallest[2]:
+            if smallest[1]<smallest[2] and smallest[1].islower():
                 move = smallest[1]+smallest[2]
             else:
                 move = smallest[2]+smallest[1]
@@ -200,9 +200,10 @@ def compPickMove():
         move = random.choice(list(lines.keys()))
         good = False
         while not good:
+            print("stuck here")
             move = random.choice(list(lines.keys()))
             for c in move:
-                if c.isdigit() and c in smallest and lines[move]==0:
+                if c.islower() and c in smallest and lines[move]==0:
                     good = True
         return move
 
@@ -226,7 +227,7 @@ def printScore():
 #bs = int(input("what square board size would you like to play? "))
 #boxes = {}
 #for box in range(1,bs*bs+1):
-    boxes[str(box)] = "empty"
+#    boxes[str(box)] = "empty"
 #print(boxes)
 #lines = {}
 #for s in range(1,bs+1):
@@ -235,8 +236,8 @@ def printScore():
     #    lines[str(s+
 #    lines[str(bs*bs-s+1)+'s'] = 0
 #print(lines)
-boxes = {'1':"empty",'2':"empty",'3':"empty",'4':"empty",'5':"empty",'6':"empty",'7':"empty",'8':"empty",'9':"empty"}
-lines = {'1n':0,'2n':0,'3n':0,'14':0,'25':0,'36':0,'47':0,'58':0,'69':0,'7s':0,'8s':0,'9s':0,'1w':0,'4w':0,'7w':0,'12':0,'45':0,'78':0,'23':0,'56':0,'89':0,'3e':0,'6e':0,'9e':0}
+boxes = {'a':"empty",'b':"empty",'c':"empty",'d':"empty",'e':"empty",'f':"empty",'g':"empty",'h':"empty",'i':"empty"}
+lines = {'aN':1,'bN':1,'cN':0,'ad':0,'be':1,'cf':1,'dg':1,'eh':0,'fi':0,'gS':0,'hS':1,'iS':1,'aW':1,'dW':0,'gW':1,'ab':0,'de':1,'gh':0,'bc':0,'ef':0,'hi':1,'cE':1,'fE':0,'iE':0}
 moves = 0
 game_over = False
 while moves < 24 and not game_over:

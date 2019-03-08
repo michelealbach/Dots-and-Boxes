@@ -226,7 +226,7 @@ def printScore():
 #bs = int(input("what square board size would you like to play? "))
 #boxes = {}
 #for box in range(1,bs*bs+1):
-    boxes[str(box)] = "empty"
+#    boxes[str(box)] = "empty"
 #print(boxes)
 #lines = {}
 #for s in range(1,bs+1):
