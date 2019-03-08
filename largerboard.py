@@ -182,7 +182,7 @@ def compPickMove():
                             move = chain[-2]+chain[-1]
                         else:
                             move = chain[-1]+chain[-2]
-                print(move)
+                #print(move)
                 return move
     if safeMovesLeft():
         move = random.choice(list(lines.keys()))
@@ -250,8 +250,11 @@ while moves < max_moves and not game_over:
     ycont = True
     while ycont and not game_over:
         yplay = input("what move would you like to play? ")
-        while lines[yplay] == 1:
-            print("There is already a line there")
+        while yplay not in lines or lines[yplay] == 1:
+            if yplay in lines:
+                print("There is already a line there")
+            else:
+                print("Not a valid move")
             yplay = input("what move would you like to play? ")
         lines[yplay] = 1
         moves = moves + 1
