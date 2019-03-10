@@ -163,6 +163,27 @@ def allDeadsAre3():
                 if len(chain)!=3:
                     return False
     return True
+
+def doublecross(chain):
+    if len(chain)!=3:
+        return "Error"
+    if chain[0].islower() == False:
+        move = chain[1]+chain[0]
+    elif chain[-1].islower() == False:
+        move = chain[-2]+chain[-1]
+    else:
+        if isDead(chain[0]):
+            if chain[-2]<chain[-1]:
+                move = chain[-2]+chain[-1]
+            else:
+                move = chain[-1]+chain[-2]                      
+        else:
+            if chain[0]<chain[1]:
+                move = chain[0]+chain[1]
+            else:
+                move = chain[1]+chain[0]
+    return move
+
         
 def compPickMove():
     chains = returnChains()
@@ -178,28 +199,19 @@ def compPickMove():
                     if allDeadsAre3():
                         return move
                     continue
-                only_long_left = True
+                should_doublecross = True
+                if numEmptyBoxes()<=2:
+                    should_doublecross = False
                 for ch in chains:
                     if len(ch)<=4 and ch!=chain:
-                        only_long_left = False
+                        should_doublecross = False
                         break
-                if len(chain)==3 and numEmptyBoxes()>2 and only_long_left:
+                    if isLoop(ch) and len(chains)>1:
+                        should_doublecross = False
+                        break
+                if len(chain)==3 and should_doublecross:
                     #print(chain)
-                    if chain[0].islower() == False:
-                        move = chain[1]+chain[0]
-                    elif chain[-1].islower() == False:
-                        move = chain[-2]+chain[-1]
-                    else:
-                        if isDead(chain[0]):
-                            if chain[-2]<chain[-1]:
-                                move = chain[-2]+chain[-1]
-                            else:
-                                move = chain[-1]+chain[-2]                      
-                        else:
-                            if chain[0]<chain[1]:
-                                move = chain[0]+chain[1]
-                            else:
-                                move = chain[1]+chain[0]       
+                    move = doublecross(chain)
                 #print(move)
                 return move
     if safeMovesLeft():
@@ -209,6 +221,9 @@ def compPickMove():
         return move
     else:
         smallest = min(chains, key=len)
+        for chain in chains:
+            if isLoop(chain) and loopLen(chain)<len(smallest):
+                smallest = chain
         if len(smallest) == 4:
             if smallest[1]<smallest[2] and smallest[1].islower():
                 move = smallest[1]+smallest[2]
