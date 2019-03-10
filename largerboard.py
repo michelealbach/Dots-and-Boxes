@@ -173,15 +173,20 @@ def compPickMove():
                         break
                 if len(chain)==3 and numEmptyBoxes()>2 and only_long_left:
                     if chain[0].islower() == False:
-                        if chain[0]<chain[1] and chain[0].islower():
-                            move = chain[0]+chain[1]
-                        else:
-                            move = chain[1]+chain[0]
+                        move = chain[1]+chain[0]
                     elif chain[-1].islower() == False:
-                        if chain[-2]<chain[-1] and chain[-2].islower():
-                            move = chain[-2]+chain[-1]
+                        move = chain[-2]+chain[-1]
+                    else:
+                        if isDead(chain[0]):
+                            if chain[-2]<chain[-1]:
+                                move = chain[-2]+chain[-1]
+                            else:
+                                move = chain[-1]+chain[-2]                      
                         else:
-                            move = chain[-1]+chain[-2]
+                            if chain[0]<chain[1]:
+                                move = chain[0]+chain[1]
+                            else:
+                                move = chain[1]+chain[0]       
                 #print(move)
                 return move
     if safeMovesLeft():

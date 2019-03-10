@@ -173,16 +173,21 @@ def compPickMove():
                         break
                 if len(chain)==3 and numEmptyBoxes()>2 and only_long_left:
                     if chain[0].isdigit() == False:
-                        if chain[0]<chain[1]:
-                            move = chain[0]+chain[1]
-                        else:
-                            move = chain[1]+chain[0]
+                        move = chain[1]+chain[0]
                     elif chain[-1].isdigit() == False:
-                        if chain[-2]<chain[-1]:
-                            move = chain[-2]+chain[-1]
+                        move = chain[-2]+chain[-1]
+                    else:
+                        if isDead(chain[0]):
+                            if chain[-2]<chain[-1]:
+                                move = chain[-2]+chain[-1]
+                            else:
+                                move = chain[-1]+chain[-2]                      
                         else:
-                            move = chain[-1]+chain[-2]
-                print(move)
+                            if chain[0]<chain[1]:
+                                move = chain[0]+chain[1]
+                            else:
+                                move = chain[1]+chain[0]       
+                #print(move)
                 return move
     if safeMovesLeft():
         move = random.choice(list(lines.keys()))

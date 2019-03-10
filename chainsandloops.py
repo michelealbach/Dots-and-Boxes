@@ -67,7 +67,19 @@ def boxesBeside(box):
                 if c!=box:
                     boxes_beside.append(c)
     return boxes_beside
-        
+
+def isLoop(chain):
+    # Checks if a chain is a loop
+    if chain[0].islower():
+        for i in range(len(chain)):
+            if chain[i] in chain[i+1:]:
+                return True
+    return False
+
+def loopLen(loop):
+    # Returns the number of boxes in a loop
+    return len(set(loop))
+
 def returnChains():
     chains = []
     for box in boxes.keys():
@@ -172,16 +184,22 @@ def compPickMove():
                         only_long_left = False
                         break
                 if len(chain)==3 and numEmptyBoxes()>2 and only_long_left:
+                    #print(chain)
                     if chain[0].islower() == False:
-                        if chain[0]<chain[1] and chain[0].islower():
-                            move = chain[0]+chain[1]
-                        else:
-                            move = chain[1]+chain[0]
+                        move = chain[1]+chain[0]
                     elif chain[-1].islower() == False:
-                        if chain[-2]<chain[-1] and chain[-2].islower():
-                            move = chain[-2]+chain[-1]
+                        move = chain[-2]+chain[-1]
+                    else:
+                        if isDead(chain[0]):
+                            if chain[-2]<chain[-1]:
+                                move = chain[-2]+chain[-1]
+                            else:
+                                move = chain[-1]+chain[-2]                      
                         else:
-                            move = chain[-1]+chain[-2]
+                            if chain[0]<chain[1]:
+                                move = chain[0]+chain[1]
+                            else:
+                                move = chain[1]+chain[0]       
                 #print(move)
                 return move
     if safeMovesLeft():
