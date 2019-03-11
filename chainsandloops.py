@@ -57,6 +57,7 @@ def safeMovesLeft():
             return True
     return False
 
+# Returns boxes beside box with no line between them
 def boxesBeside(box):
     boxes_beside = []
     if box.islower() == False:
@@ -190,7 +191,35 @@ def doublecross(chain):
                 move = chain[1]+chain[0]
     return move
 
-        
+# Fixes the order of boxes in a move
+def fixMove(move):
+    if move[0].islower()==False:
+        return move[1]+move[0]
+    if move[1].islower()==False:
+        return move[0]+move[1]
+    if move[1]<move[0]:
+        return move[1]+move[0]
+    return move
+
+def avoidLoops():
+    for box in boxes:
+        beside = boxesBeside(box)
+        if len(beside)==2 and beside[0].islower() and beside[1].islower():
+            for b in boxes:
+                if fixMove(beside[0]+b) in lines and fixMove(beside[1]+b) in lines and b!=box:
+                    move1 = fixMove(beside[0]+b)
+                    move2 = fixMove(beside[1]+b)
+                    if lines[move1] == 0 and lines[move2] == 0:
+                        if isSafeMove(move1):
+                            print("avoiding loops")
+                            return move1
+                        if isSafeMove(move2):
+                            print("avoiding loops")
+                            return move2
+                        break
+    return False
+    
+
 def compPickMove():
     chains = returnChains()
     NE = numEmptyBoxes()
@@ -235,6 +264,10 @@ def compPickMove():
                 #print(move)
                 return move
     if safeMovesLeft():
+        if True:#random.uniform(0,1)>0.5:
+            move = avoidLoops()
+            if move:
+                return move
         move = random.choice(list(lines.keys()))
         while lines[move] == 1 or not isSafeMove(move):
             move = random.choice(list(lines.keys()))
@@ -319,7 +352,7 @@ while moves < max_moves and not game_over:
     ccont = True
     while ccont and not game_over:
         print("Making my move...")
-        cplay = compPickMove()
+        cplay = fixMove(compPickMove())
         lines[cplay] = 1
         moves = moves + 1
         print("I play " + cplay)
