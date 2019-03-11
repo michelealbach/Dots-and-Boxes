@@ -155,6 +155,12 @@ def numEmptyBoxes():
             left = left+1
     return left
 
+def bothEndsDead(chain):
+    for box in chain:
+        if box.islower() == False:
+            return False
+    return isDead(chain[0]) and isDead(chain[-1])
+
 def allDeadsAre3():
     for move in lines.keys():
         if lines[move]==0:
@@ -187,6 +193,7 @@ def doublecross(chain):
         
 def compPickMove():
     chains = returnChains()
+    NE = numEmptyBoxes()
     for move in lines.keys():
         if lines[move] == 0:
             if capturedBox(move,"na",'n'):
@@ -199,19 +206,32 @@ def compPickMove():
                     if allDeadsAre3():
                         return move
                     continue
+                # Should comp double-cross?
                 should_doublecross = True
-                if numEmptyBoxes()<=2:
+                # If all boxes can be captured, then no
+                if NE<=2 or len(chains)==1:
                     should_doublecross = False
+                num_no_dc = 0 #num chains that cannot be double-crossed
+                num_loops = 0
                 for ch in chains:
                     if len(ch)<=4 and ch!=chain:
-                        should_doublecross = False
-                        break
-                    if isLoop(ch) and len(chains)>1:
-                        should_doublecross = False
-                        break
+                        num_no_dc = num_no_dc+1
+                    if isLoop(ch) and ch!=chain:
+                        num_loops = num_loops+1
+                if num_no_dc%2 == 1:
+                    should_doublecross = False
                 if len(chain)==3 and should_doublecross:
                     #print(chain)
                     move = doublecross(chain)
+                # Loop double-crossing
+                # Have to give up 4 boxes, so don't do it if can't gain more than 4 boxes
+                if NE-4-(len(chains)-2)*2-num_loops*2<=4:
+                    should_doublecross = False
+                if len(chain)==4 and bothEndsDead(chain) and should_doublecross:
+                    if chain[1]<chain[2]:
+                        move = chain[1]+chain[2]
+                    else:
+                        move = chain[2]+chain[1]
                 #print(move)
                 return move
     if safeMovesLeft():
