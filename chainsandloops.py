@@ -3,12 +3,14 @@
 
 import random
 import time
-bs = None
-boxes = {}
-lines = {}
+bs = None # board size
+boxes = {} # set of boxes
+lines = {} # set of lines
 
 def main():
+    # get board size
     bs = input("What square board size would you like to play? (1-5) ")
+    # handle invalid input
     while bs.isdigit() == False:
         print("Invalid board size, enter a number from 1 to 5")
         bs = input("What square board size would you like to play? (1-5) ")
@@ -16,6 +18,7 @@ def main():
         print("Invalid board size, enter a number from 1 to 5")
         bs = input("What square board size would you like to play? (1-5) ")
     bs = int(bs)
+    # create board (boxes and lines)
     a = ord('a')
     for box in range(bs*bs):
         boxes[chr(a+box)] = "empty"
@@ -30,49 +33,57 @@ def main():
             lines[chr(a+bs*s+col)+chr(a+bs*s+(col+1))] = 0
         lines[chr(a+bs*s+(bs-1))+'E'] = 0
     #print(lines)
-    moves = 0
-    max_moves = 2*bs*(bs+1)
-    game_over = False
+    # determine who goes first
     order = input("Would you like to go 1st or 2nd? ")
+    # handle invalid input
     while order[0].isdigit() == False:
         print("Invalid input")
         order = input("Would you like to go 1st or 2nd? ")
     order = int(order[0])
-    first_loop = True
+    # play game!
+    moves = 0 # number of moves played so far
+    max_moves = 2*bs*(bs+1) # total possible moves
+    game_over = False
+    first_loop = True # true if on first loop of game (for playing order)
     while moves < max_moves and not game_over:
-        # you move
-        if order == 1 or first_loop == False:
-            ycont = True
+        # user takes turn
+        if order == 1 or first_loop == False: # skip if first loop and going 2nd
+            ycont = True # should user continue their turn (if box is captured)
             while ycont and not game_over:
+                # get user move
                 yplay = input("What move would you like to play? ")
                 yplay = fixMove(yplay)
+                # get new move if not valid
                 while yplay not in lines or lines[yplay] == 1:
                     if yplay in lines:
                         print("There is already a line there")
                     else:
                         print("Not a valid move")
                     yplay = input("What move would you like to play? ")
-                lines[yplay] = 1
-                moves = moves + 1
+                lines[yplay] = 1 # update board
+                moves = moves + 1 # increase number of moves done
+                # check if move captures box and update board
                 ycont = capturedBox(yplay,"you",'y')
                 if ycont:
                     print("You captured a box!")
-                game_over = gameOver()
-        # comp move
-        ccont = True
+                game_over = gameOver() # check if game is over
+        # comp takes their turn
+        ccont = True # should comp continue their turn (if box captured)
         while ccont and not game_over:
             print("Making my move...")
-            cplay = fixMove(compPickMove())
-            lines[cplay] = 1
-            moves = moves + 1
-            time.sleep(1)
+            cplay = fixMove(compPickMove()) # pick move!
+            lines[cplay] = 1 # update board
+            moves = moves + 1 # increase number of moves done
+            time.sleep(1) # pause for a second to seem more human
             print("I play " + cplay)
+            # check if move captures a box and update board
             ccont = capturedBox(cplay,"comp",'y')
             if ccont:
                 print("Comp captured a box!")
-                time.sleep(0.5)
-            game_over = gameOver()
+                time.sleep(0.5) # pause to allow them to read move
+            game_over = gameOver() # check if game is over
         first_loop = False
+    # print outcome of game
     printScore()
 
 # captureBox: Takes a move, a player who made the move, and a flag for whether
