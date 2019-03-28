@@ -3,6 +3,7 @@
 
 import random
 import time
+import copy
 bs = None # board size
 boxes = {} # set of boxes
 lines = {} # set of lines
@@ -71,7 +72,8 @@ def main():
         ccont = True # should comp continue their turn (if box captured)
         while ccont and not game_over:
             print("Making my move...")
-            cplay = fixMove(compPickMove()) # pick move!
+            cplay = fixMove(compSearchMove())
+#            cplay = fixMove(compPickMove()) # pick move!
             lines[cplay] = 1 # update board
             moves = moves + 1 # increase number of moves done
             time.sleep(1) # pause for a second to seem more human
@@ -88,7 +90,7 @@ def main():
 
 # captureBox: Takes a move, a player who made the move, and a flag for whether
 # or not to actually update the board. Returns if a box is captured by that move.
-def capturedBox(move,p,update):
+def capturedBox(move,p,update,lines=lines):
     foundbox = False
     # iterate through each box touching the move
     for c in move:
@@ -106,10 +108,10 @@ def capturedBox(move,p,update):
                 if update == 'y':
                     boxes[c] = p
                 foundbox = True
-    return foundbox    
+    return foundbox
 
 # gameOver: returns if all boxes have been captured
-def gameOver():
+def gameOver(boxes = boxes):
     for box in boxes.values():
         if box=="empty":
             return False
@@ -138,7 +140,7 @@ def numDeadBoxes():
 
 # isSafeMove: takes a move and returns if will create a dead box by checking if
 # the move is touching a box already surrounded by 2 other lines
-def isSafeMove(move):
+def isSafeMove(move, lines = lines):
     for c in move:
         if c.islower():
             lines_around = 0
@@ -343,7 +345,57 @@ def avoidLoops():
                             return move2
                         break
     return False
-    
+
+def compScore(s_boxes):
+    cs = 0
+    for box in s_boxes.values():
+        if box == "comp":
+            cs = cs+1
+    return cs
+
+def fillInBoxes(s_boxes, s_lines, p):
+    for box in s_boxes:
+        fillin = True
+        for line in s_lines:
+            if box in line and s_lines[line] == 0:
+                fillin = False
+                break
+        if fillin and s_boxes[box] == "empty":
+            s_boxes[box] = p
+    return s_boxes
+
+def search(s_lines,s_boxes):
+    if gameOver(s_boxes):
+        return compScore(s_boxes), None
+    best_score = 0
+    best_move = random.choice(list(lines.keys()))
+    while s_lines[best_move] == 1:# or not isSafeMove(move):
+        best_move = random.choice(list(lines.keys()))
+    for cmove in s_lines:
+        if s_lines[cmove] == 1:
+            continue
+ #       print("at cmoves")
+        s_lines[cmove] = 1
+        s_boxes = fillInBoxes(s_boxes, s_lines, "comp")
+        scores = ()
+        for ymove in s_lines:
+            if s_lines[ymove] == 1:
+                continue
+#            print("at ymoves")
+            s_lines[ymove] = 1
+            s_boxes = fillInBoxes(s_boxes, s_lines, "you")
+            scores= scores +(search(s_lines,s_boxes)[0],)
+            print(scores)
+        if min(scores, default=0)>best_score:
+            best_score = min(scores)
+            best_move = cmove
+    return best_score, best_move
+
+def compSearchMove():
+    s_lines = copy.deepcopy(lines)
+    s_boxes = copy.deepcopy(boxes)
+    return search(s_lines,s_boxes)[1]
+
 # compPickMove: picks a move
 def compPickMove():
     chains = returnChains()
