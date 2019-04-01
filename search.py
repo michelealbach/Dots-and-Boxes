@@ -10,6 +10,7 @@ lines = {} # set of lines
 
 def main():
     # get board size
+    global bs
     bs = input("What square board size would you like to play? (1-5) ")
     # handle invalid input
     while bs.isdigit() == False:
@@ -23,7 +24,7 @@ def main():
     a = ord('a')
     for box in range(bs*bs):
         boxes[chr(a+box)] = "empty"
-    #print(boxes)
+    print(boxes)
     for s in range(bs):
         lines[chr(a+s)+'N'] = 0
         for row in range(bs-1):
@@ -33,7 +34,7 @@ def main():
         for col in range(bs-1):
             lines[chr(a+bs*s+col)+chr(a+bs*s+(col+1))] = 0
         lines[chr(a+bs*s+(bs-1))+'E'] = 0
-    #print(lines)
+    print(lines)
     # determine who goes first
     order = input("Would you like to go 1st or 2nd? ")
     # handle invalid input
@@ -348,6 +349,117 @@ def avoidLoops():
                         break
     return False
 
+def flipBoard(s_lines,s_boxes):
+    f_lines = {}
+    f_boxes = {}
+    for line in s_lines:
+        f_lines[line] = 0
+    for box in s_boxes:
+        f_boxes[box] = "empty"
+    a = ord('a')
+    for line in s_lines:
+        if s_lines[line] == 1:
+            c1 = line[0]
+            c1n = ord(c1)-a+1
+            c1row = (c1n-1)//bs
+            new_c1n = c1row*bs+bs-(c1n-(c1row*bs))+1
+            new_c1 = chr(a+new_c1n-1)
+            c2 = line[1]
+            if c2.islower():
+                c2n = ord(c2)-a+1
+                c2row = (c2n-1)//bs
+                new_c2n = c2row*bs+bs-(c2n-(c2row*bs))+1
+                new_c2 = chr(a+new_c2n-1)
+            else:
+                if c2 == 'E':
+                    new_c2 = 'W'
+                elif c2 == 'W':
+                    new_c2 = 'E'
+                else:
+                    new_c2 = c2
+            new_line = fixMove(new_c1+new_c2)
+            f_lines[new_line] = 1
+    for box in s_boxes:
+        if s_boxes[box] != "empty":
+            boxn = ord(box)-a+1
+            row = (boxn-1)//bs
+            new_boxn = row*bs+bs-(boxn-(row*bs))+1
+            new_box = chr(a+new_boxn-1)
+            f_boxes[new_box] = s_boxes[box]
+    return f_lines, f_boxes            
+
+def rotateBoard(s_lines,s_boxes):
+    r_lines = {}
+    r_boxes = {}
+    for line in s_lines:
+        r_lines[line] = 0
+    for box in s_boxes:
+        r_boxes[box] = "empty"
+    a = ord('a')
+    for line in s_lines:
+        if s_lines[line] == 1:
+            c1 = line[0]
+            c1n = ord(c1)-a+1
+            c1row = (c1n-1)//bs
+            c1col = c1n-c1row*bs
+            new_c1n = (c1col-1)*bs+bs-c1row
+            new_c1 = chr(a+new_c1n-1)
+            c2 = line[1]
+            if c2.islower():
+                c2n = ord(c2)-a+1
+                c2row = (c2n-1)//bs
+                c2col = c2n-c2row*bs
+                new_c2n = (c2col-1)*bs+bs-c2row
+                new_c2 = chr(a+new_c2n-1)
+            else:
+                if c2 == 'N':
+                    new_c2 = 'E'
+                elif c2 == 'E':
+                    new_c2 = 'S'
+                elif c2 == 'S':
+                    new_c2 = 'W'
+                elif c2 == 'W':
+                    new_c2 = 'N'
+                else:
+                    new_c2 = c2
+            new_line = fixMove(new_c1+new_c2)
+            r_lines[new_line] = 1
+    for box in s_boxes:
+        if s_boxes[box] != "empty":
+            boxn = ord(box)-a+1
+            row = (boxn-1)//bs
+            col = boxn-row*bs
+            new_boxn = (col-1)*bs+bs-row
+            new_box = chr(a+new_boxn-1)
+            r_boxes[new_box] = s_boxes[box]
+    return r_lines, r_boxes
+
+def isIsomorphic(lines1,boxes1,lines2,boxes2):
+    if lines1==lines2 and boxes1==boxes2:
+        return True
+    f_lines, f_boxes = flipBoard(lines1,boxes2)
+    if f_lines==lines2 and f_boxes==boxes2:
+        return True
+    r1_lines, r1_boxes = rotateBoard(lines1,boxes1)
+    if r1_lines==lines2 and r1_boxes == boxes2:
+        return True
+    f1_lines, f1_boxes = flipBoard(r1_lines,r1_boxes)
+    if f1_lines==lines2 and f1_boxes==boxes2:
+        return True
+    r2_lines, r2_boxes = rotateBoard(r1_lines, r1_boxes)
+    if r2_lines==lines2 and r2_boxes == boxes2:
+        return True
+    f2_lines, f2_boxes = flipBoard(r2_lines,r2_boxes)
+    if f2_lines==lines2 and f2_boxes==boxes2:
+        return True
+    r3_lines, r3_boxes = rotateBoard(r2_lines, r2_boxes)
+    if r3_lines==lines2 and r3_boxes == boxes2:
+        return True
+    f3_lines, f3_boxes = flipBoard(r3_lines,r3_boxes)
+    if f3_lines==lines2 and f3_boxes==boxes2:
+        return True
+    return False
+
 def compScore(s_boxes):
     cs = 0
     for box in s_boxes.values():
@@ -366,48 +478,83 @@ def fillInBoxes(s_boxes, s_lines, p):
             s_boxes[box] = p
     return s_boxes
 
-def search(s_lines,s_boxes):
+def search(s_lines,s_boxes,p,best_score):
     s_lines = copy.deepcopy(s_lines)
     s_boxes = copy.deepcopy(s_boxes)
     if gameOver(s_boxes):
-        print("found leaf")
+#        print("found leaf")
         return compScore(s_boxes), None
-    best_score = 0
-    best_move = random.choice(list(lines.keys()))
-    while s_lines[best_move] == 1:# or not isSafeMove(move):
+    if p == "comp":
+        best_score = 0
         best_move = random.choice(list(lines.keys()))
-    s_lines_copy_1 = copy.deepcopy(s_lines)
-    s_boxes_copy_1 = copy.deepcopy(s_boxes)
-    for cmove in s_lines:
-        s_lines = copy.deepcopy(s_lines_copy_1)
-        s_boxes = copy.deepcopy(s_boxes_copy_1)
-        if s_lines[cmove] == 1:
-            continue
-        print("at cmoves")
-        s_lines[cmove] = 1
-        s_boxes = fillInBoxes(s_boxes, s_lines, "comp")
-        scores = ()
+        while s_lines[best_move] == 1:# or not isSafeMove(move):
+            best_move = random.choice(list(lines.keys()))
+        s_lines_copy_1 = copy.deepcopy(s_lines)
+        s_boxes_copy_1 = copy.deepcopy(s_boxes)
+        seen_lines = []
+        seen_boxes = []
+        for cmove in s_lines:
+            s_lines = copy.deepcopy(s_lines_copy_1)
+            s_boxes = copy.deepcopy(s_boxes_copy_1)
+            if s_lines[cmove] == 1:
+                continue
+#            print("at cmoves")
+            s_lines[cmove] = 1
+            s_boxes = fillInBoxes(s_boxes, s_lines, "comp")
+            isomorphic = False
+            for i in range(len(seen_lines)):
+                if isIsomorphic(s_lines,s_boxes,seen_lines[i],seen_boxes[i]):
+                    isomorphic = True
+            if isomorphic:
+                continue
+            seen_lines.append(s_lines)
+            seen_boxes.append(s_boxes)
+            if capturedBox(cmove,"comp",'n',s_lines):
+                new_score = search(s_lines,s_boxes,"comp",best_score)[0]
+            else:
+                new_score = search(s_lines,s_boxes,"you",best_score)[0]
+#            print(new_score)
+            if new_score > best_score:
+                best_score = new_score
+                best_move = cmove
+        return best_score, best_move
+    elif p == "you":
+        worst_score = 100
         s_lines_copy_2 = copy.deepcopy(s_lines)
         s_boxes_copy_2 = copy.deepcopy(s_boxes)
+        seen_lines = []
+        seen_boxes = []
         for ymove in s_lines:
             s_lines = copy.deepcopy(s_lines_copy_2)
             s_boxes = copy.deepcopy(s_boxes_copy_2)
             if s_lines[ymove] == 1:
                 continue
-            print("at ymoves")
+#            print("at ymoves")
             s_lines[ymove] = 1
             s_boxes = fillInBoxes(s_boxes, s_lines, "you")
-            scores= scores +(search(s_lines,s_boxes)[0],)
-            print(scores)
-        if min(scores, default=0)>best_score:
-            best_score = min(scores)
-            best_move = cmove
-    return best_score, best_move
+            isomorphic = False
+            for i in range(len(seen_lines)):
+                if isIsomorphic(s_lines,s_boxes,seen_lines[i],seen_boxes[i]):
+                    isomorphic = True
+            if isomorphic:
+                continue
+            seen_lines.append(s_lines)
+            seen_boxes.append(s_boxes)
+            if capturedBox(ymove,"you",'n',s_lines):
+                new_score = search(s_lines,s_boxes,"you",best_score)[0]
+            else:
+                new_score = search(s_lines,s_boxes,"comp",best_score)[0]
+#            print(new_score)
+            if new_score < worst_score:
+                worst_score = new_score
+            if worst_score<best_score:
+                break
+        return worst_score, None
 
 def compSearchMove():
     s_lines = copy.deepcopy(lines)
     s_boxes = copy.deepcopy(boxes)
-    return search(s_lines,s_boxes)[1]
+    return search(s_lines,s_boxes,"comp",0)[1]
 
 # compPickMove: picks a move
 def compPickMove():
