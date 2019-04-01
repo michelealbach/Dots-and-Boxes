@@ -72,8 +72,10 @@ def main():
         ccont = True # should comp continue their turn (if box captured)
         while ccont and not game_over:
             print("Making my move...")
-            cplay = fixMove(compSearchMove())
-#            cplay = fixMove(compPickMove()) # pick move!
+            if moves > max_moves/2:
+                cplay = fixMove(compSearchMove())
+            else:
+                cplay = fixMove(compPickMove()) # pick move!
             lines[cplay] = 1 # update board
             moves = moves + 1 # increase number of moves done
             time.sleep(1) # pause for a second to seem more human
@@ -365,23 +367,34 @@ def fillInBoxes(s_boxes, s_lines, p):
     return s_boxes
 
 def search(s_lines,s_boxes):
+    s_lines = copy.deepcopy(s_lines)
+    s_boxes = copy.deepcopy(s_boxes)
     if gameOver(s_boxes):
+        print("found leaf")
         return compScore(s_boxes), None
     best_score = 0
     best_move = random.choice(list(lines.keys()))
     while s_lines[best_move] == 1:# or not isSafeMove(move):
         best_move = random.choice(list(lines.keys()))
+    s_lines_copy_1 = copy.deepcopy(s_lines)
+    s_boxes_copy_1 = copy.deepcopy(s_boxes)
     for cmove in s_lines:
+        s_lines = copy.deepcopy(s_lines_copy_1)
+        s_boxes = copy.deepcopy(s_boxes_copy_1)
         if s_lines[cmove] == 1:
             continue
- #       print("at cmoves")
+        print("at cmoves")
         s_lines[cmove] = 1
         s_boxes = fillInBoxes(s_boxes, s_lines, "comp")
         scores = ()
+        s_lines_copy_2 = copy.deepcopy(s_lines)
+        s_boxes_copy_2 = copy.deepcopy(s_boxes)
         for ymove in s_lines:
+            s_lines = copy.deepcopy(s_lines_copy_2)
+            s_boxes = copy.deepcopy(s_boxes_copy_2)
             if s_lines[ymove] == 1:
                 continue
-#            print("at ymoves")
+            print("at ymoves")
             s_lines[ymove] = 1
             s_boxes = fillInBoxes(s_boxes, s_lines, "you")
             scores= scores +(search(s_lines,s_boxes)[0],)
