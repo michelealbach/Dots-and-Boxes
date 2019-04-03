@@ -73,7 +73,7 @@ def main():
         ccont = True # should comp continue their turn (if box captured)
         while ccont and not game_over:
             print("Making my move...")
-            if moves > max_moves/2:
+            if moves > max_moves/3 or bs<=2:
                 cplay = fixMove(compSearchMove())
             else:
                 cplay = fixMove(compPickMove()) # pick move!
@@ -156,7 +156,7 @@ def isSafeMove(move, lines = lines):
     return True
 
 # safeMovesLeft: returns true if there are any safe moves left on the board
-def safeMovesLeft():
+def safeMovesLeft(lines = lines):
     for move in lines.keys():
         if lines[move]==0 and isSafeMove(move):
             return True
@@ -487,7 +487,7 @@ def search(s_lines,s_boxes,p,best_score):
     if p == "comp":
         best_score = 0
         best_move = random.choice(list(lines.keys()))
-        while s_lines[best_move] == 1:# or not isSafeMove(move):
+        while s_lines[best_move] == 1:
             best_move = random.choice(list(lines.keys()))
         s_lines_copy_1 = copy.deepcopy(s_lines)
         s_boxes_copy_1 = copy.deepcopy(s_boxes)
@@ -498,6 +498,8 @@ def search(s_lines,s_boxes,p,best_score):
             s_boxes = copy.deepcopy(s_boxes_copy_1)
             if s_lines[cmove] == 1:
                 continue
+            if safeMovesLeft(s_lines) and not isSafeMove(cmove, s_lines):
+                continue
 #            print("at cmoves")
             s_lines[cmove] = 1
             s_boxes = fillInBoxes(s_boxes, s_lines, "comp")
@@ -506,6 +508,7 @@ def search(s_lines,s_boxes,p,best_score):
                 if isIsomorphic(s_lines,s_boxes,seen_lines[i],seen_boxes[i]):
                     isomorphic = True
             if isomorphic:
+                s_lines[cmove] = 0
                 continue
             seen_lines.append(s_lines)
             seen_boxes.append(s_boxes)
@@ -529,6 +532,8 @@ def search(s_lines,s_boxes,p,best_score):
             s_boxes = copy.deepcopy(s_boxes_copy_2)
             if s_lines[ymove] == 1:
                 continue
+            if safeMovesLeft(s_lines) and not isSafeMove(ymove, s_lines):
+                continue
 #            print("at ymoves")
             s_lines[ymove] = 1
             s_boxes = fillInBoxes(s_boxes, s_lines, "you")
@@ -537,6 +542,7 @@ def search(s_lines,s_boxes,p,best_score):
                 if isIsomorphic(s_lines,s_boxes,seen_lines[i],seen_boxes[i]):
                     isomorphic = True
             if isomorphic:
+                s_lines[ymove] = 0
                 continue
             seen_lines.append(s_lines)
             seen_boxes.append(s_boxes)
