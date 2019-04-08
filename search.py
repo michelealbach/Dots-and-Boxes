@@ -1,5 +1,5 @@
 # A dots and boxes player, can play up to a 5x5 board.
-# Does not use any searching, only strategy
+# Uses searching and strategy
 
 import random
 import time
@@ -349,6 +349,8 @@ def avoidLoops():
                         break
     return False
 
+# flipBoard: takes a board state (lines and boxes) and returns the mirrored
+# board state
 def flipBoard(s_lines,s_boxes):
     f_lines = {}
     f_boxes = {}
@@ -357,8 +359,10 @@ def flipBoard(s_lines,s_boxes):
     for box in s_boxes:
         f_boxes[box] = "empty"
     a = ord('a')
+    # for each line in s_lines, add the mirrored line to f_lines
     for line in s_lines:
         if s_lines[line] == 1:
+            # find the mirrored neighbouring boxes
             c1 = line[0]
             c1n = ord(c1)-a+1
             c1row = (c1n-1)//bs
@@ -370,6 +374,7 @@ def flipBoard(s_lines,s_boxes):
                 c2row = (c2n-1)//bs
                 new_c2n = c2row*bs+bs-(c2n-(c2row*bs))+1
                 new_c2 = chr(a+new_c2n-1)
+            # if touching an edge, mirror the edge
             else:
                 if c2 == 'E':
                     new_c2 = 'W'
@@ -377,8 +382,10 @@ def flipBoard(s_lines,s_boxes):
                     new_c2 = 'E'
                 else:
                     new_c2 = c2
+            # combine the boxes to make the new line
             new_line = fixMove(new_c1+new_c2)
             f_lines[new_line] = 1
+    # for each claimed box in s_boxes, claim the mirrored box in f_boxes
     for box in s_boxes:
         if s_boxes[box] != "empty":
             boxn = ord(box)-a+1
@@ -388,6 +395,8 @@ def flipBoard(s_lines,s_boxes):
             f_boxes[new_box] = s_boxes[box]
     return f_lines, f_boxes            
 
+# rotateBoard: takes a board state and returns the rotated (clockwise) board
+# state, similar to flipBoard
 def rotateBoard(s_lines,s_boxes):
     r_lines = {}
     r_boxes = {}
@@ -434,7 +443,9 @@ def rotateBoard(s_lines,s_boxes):
             r_boxes[new_box] = s_boxes[box]
     return r_lines, r_boxes
 
+# isIsomorphic: takes two board states and returns if they are isomorphic
 def isIsomorphic(lines1,boxes1,lines2,boxes2):
+    # use flipBoard and rotateBoard to check every possible orientation
     if lines1==lines2 and boxes1==boxes2:
         return True
     f_lines, f_boxes = flipBoard(lines1,boxes2)
@@ -458,8 +469,11 @@ def isIsomorphic(lines1,boxes1,lines2,boxes2):
     f3_lines, f3_boxes = flipBoard(r3_lines,r3_boxes)
     if f3_lines==lines2 and f3_boxes==boxes2:
         return True
+    # if none are the same, return False
     return False
 
+# compScore: takes a board state (only boxes) and returns the amount of boxes
+# owned by the comp
 def compScore(s_boxes):
     cs = 0
     for box in s_boxes.values():
@@ -467,9 +481,13 @@ def compScore(s_boxes):
             cs = cs+1
     return cs
 
+# fillInBoxes: takes a board state and a player, for any unclaimed but
+# surrounded boxes, gives them to that player
 def fillInBoxes(s_boxes, s_lines, p):
+    # for every box
     for box in s_boxes:
         fillin = True
+        # set fillin to false if there is an undrawn line around the box
         for line in s_lines:
             if box in line and s_lines[line] == 0:
                 fillin = False
@@ -478,31 +496,40 @@ def fillInBoxes(s_boxes, s_lines, p):
             s_boxes[box] = p
     return s_boxes
 
+# search: recursively searches for a best move for the comp
 def search(s_lines,s_boxes,p,best_score):
+    # copy the board state
     s_lines = copy.deepcopy(s_lines)
     s_boxes = copy.deepcopy(s_boxes)
     if gameOver(s_boxes):
-#        print("found leaf")
+        # found a leaf node
         return compScore(s_boxes), None
+    # if it is the comp's turn
     if p == "comp":
         best_score = 0
+        # choose a random safe best move to define it
         best_move = random.choice(list(lines.keys()))
         while s_lines[best_move] == 1:
             best_move = random.choice(list(lines.keys()))
         s_lines_copy_1 = copy.deepcopy(s_lines)
         s_boxes_copy_1 = copy.deepcopy(s_boxes)
+        # set seen states to use to check for isomorphic states
         seen_lines = []
         seen_boxes = []
+        # for every possible move
         for cmove in s_lines:
             s_lines = copy.deepcopy(s_lines_copy_1)
             s_boxes = copy.deepcopy(s_boxes_copy_1)
+            # skip if already done
             if s_lines[cmove] == 1:
                 continue
+            # skip if is not safe when safe moves are left
             if safeMovesLeft(s_lines) and not isSafeMove(cmove, s_lines):
                 continue
-#            print("at cmoves")
+            # do the move and update the copied board
             s_lines[cmove] = 1
             s_boxes = fillInBoxes(s_boxes, s_lines, "comp")
+            # skip if isomorphic to one alreay seen
             isomorphic = False
             for i in range(len(seen_lines)):
                 if isIsomorphic(s_lines,s_boxes,seen_lines[i],seen_boxes[i]):
@@ -512,16 +539,20 @@ def search(s_lines,s_boxes,p,best_score):
                 continue
             seen_lines.append(s_lines)
             seen_boxes.append(s_boxes)
+            # if a box is captured, repeat with still comp's turn
             if capturedBox(cmove,"comp",'n',s_lines):
                 new_score = search(s_lines,s_boxes,"comp",best_score)[0]
+            # if no box captured, now is their turn
             else:
                 new_score = search(s_lines,s_boxes,"you",best_score)[0]
-#            print(new_score)
+            # update best score and move
             if new_score > best_score:
                 best_score = new_score
                 best_move = cmove
         return best_score, best_move
+    # if it is the player's turn
     elif p == "you":
+        # all similar to above
         worst_score = 100
         s_lines_copy_2 = copy.deepcopy(s_lines)
         s_boxes_copy_2 = copy.deepcopy(s_boxes)
@@ -532,9 +563,9 @@ def search(s_lines,s_boxes,p,best_score):
             s_boxes = copy.deepcopy(s_boxes_copy_2)
             if s_lines[ymove] == 1:
                 continue
+            # assume they will not play unsafe moves
             if safeMovesLeft(s_lines) and not isSafeMove(ymove, s_lines):
                 continue
-#            print("at ymoves")
             s_lines[ymove] = 1
             s_boxes = fillInBoxes(s_boxes, s_lines, "you")
             isomorphic = False
@@ -550,13 +581,14 @@ def search(s_lines,s_boxes,p,best_score):
                 new_score = search(s_lines,s_boxes,"you",best_score)[0]
             else:
                 new_score = search(s_lines,s_boxes,"comp",best_score)[0]
-#            print(new_score)
             if new_score < worst_score:
                 worst_score = new_score
+            # alpha-beta pruning step
             if worst_score<best_score:
                 break
         return worst_score, None
 
+# compSearchMove: starts the search by calling search
 def compSearchMove():
     s_lines = copy.deepcopy(lines)
     s_boxes = copy.deepcopy(boxes)
